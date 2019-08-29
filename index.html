@@ -5,6 +5,15 @@
             <script src="https://unpkg.com/react-dom@16/umd/react-dom.development.js" crossorigin></script>
             <script src="https://cdnjs.cloudflare.com/ajax/libs/axios/0.19.0/axios.js"></script>
             <script src="https://unpkg.com/babel-standalone@6/babel.min.js"></script>
+            <style>
+                form{
+                    display: flex;
+                    flex-direction: column;
+                    justify-content: space-around;
+                    align-items: center;
+                    justify-content: center;
+                }
+            </style>
     </head>
     <body>
         <div id='root'></div>
@@ -17,7 +26,7 @@
                 constructor() {
                     super();
                     this.state = {
-                        vacation: []
+                        vacation: ''
                     }
                 }
                 async componentDidMount() {
@@ -25,10 +34,20 @@
                     console.log(user.id)
                     const response = (await axios(`https://acme-users-api-rev.herokuapp.com/api/users/${user.id}/vacations`)).data
                     console.log(response)
-                    this.setState({ user, notes })
+                    this.setState({ user })
                 }
                 render() {
-                    return <hr/>
+                    const { vacation } = this.state
+                    return (
+                        <div>
+                        <form>
+                            <input value ={ vacation } onChange={ev=> this.setState({item: ev.target.value})} placeholder='Start'/>
+                            <input value={ vacation } onChange={ev=> this.setState({item: ev.target.value})} placeholder='End'/>
+                            <button>Create Vacation</button>
+                        </form>
+                        </div>
+
+                    )
                 }
             }
             render(<App />, root)
