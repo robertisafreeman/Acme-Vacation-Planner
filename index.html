@@ -22,31 +22,61 @@
             const { Component } = React; 
             const root = document.querySelector('#root');
 
+            const API = 'https://acme-users-api-rev.herokuapp.com/api';
+
+            const fetchUser = async ()=> {
+                const storage = window.localStorage;
+                const userId = storage.getItem('userId'); 
+                if(userId){
+                    try {
+                    return (await axios.get(`${API}/users/detail/${userId}`)).data;
+                    }
+                    catch(ex){
+                    storage.removeItem('userId');
+                    return fetchUser();
+                    }
+                }
+                const user = (await axios.get(`${API}/users/random`)).data;
+                storage.setItem('userId', user.id);
+                return  user;
+            };
+
             class App extends Component {
                 constructor() {
                     super();
                     this.state = {
-                        vacation: ''
+                        vacations: [],
+                        start: '1/1/2019',
+                        end: '12/31/2019'
                     }
+                    this.onChange = this.onChange.bind(this)
                 }
                 async componentDidMount() {
-                    const user = (await axios( `https://acme-users-api-rev.herokuapp.com/api/users/random`)).data
-                    console.log(user.id)
-                    const response = (await axios(`https://acme-users-api-rev.herokuapp.com/api/users/${user.id}/vacations`)).data
-                    console.log(response)
-                    this.setState({ user })
+                        const user = await fetchUser();
+                        const vacay = ( await `${API}/users/${user.id}/vacations`).data
+                        console.log(user, vacay)
+                }
+                async create(vac){
+                    const vacays = (await axios.post(`${API}/users/${this.state.user.id}/vacations`, vac)).data;
+                    const vacations = [...this.state.vacations, vacays ];
+                    this.setState({ vacations: vacations }); 
+                }
+                onChange(ev)  {
+                    this.setState({ 
+                        [ev.target.name]: ev.target.value 
+                    })
                 }
                 render() {
-                    const { vacation } = this.state
+                    const { vacation, start, end } = this.state
+                    const { onChange, create } = this;
                     return (
                         <div>
-                        <form>
-                            <input value ={ vacation } onChange={ev=> this.setState({item: ev.target.value})} placeholder='Start'/>
-                            <input value={ vacation } onChange={ev=> this.setState({item: ev.target.value})} placeholder='End'/>
-                            <button>Create Vacation</button>
+                        <form onSubmit={ev=> ev.preventDefault()}>
+                            <input  name='start' value={ start } onChange={ onChange } placeholder='Start'/>
+                            <input  name='end' value={ end } onChange={ onChange } placeholder='End'/>
+                            <button onClick={ create }>Create Vacation</button>
                         </form>
                         </div>
-
                     )
                 }
             }
